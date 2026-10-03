@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <title>Administración de Usuarios</title>
+
+    <meta charset="UTF-8">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:'Segoe UI',sans-serif;
+            background:#eef2f7;
+            padding:35px;
+            color:#2c3e50;
+        }
+
+        h1{
+            color:#1e3c72;
+            margin-bottom:25px;
+            font-size:34px;
+            font-weight:700;
+        }
+
+        .card{
+            background:white;
+            padding:30px;
+            border-radius:20px;
+            box-shadow:0px 8px 25px rgba(0,0,0,0.08);
+            margin-bottom:30px;
+        }
+
+        .card h2{
+            color:#1e3c72;
+            margin-bottom:25px;
+            font-size:24px;
+        }
+
+        .form-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+            gap:20px;
+        }
+
+        input,
+        select{
+            width:100%;
+            padding:14px;
+            border-radius:12px;
+            border:1px solid #dcdfe6;
+            font-size:15px;
+            transition:0.3s;
+            background:#fafafa;
+        }
+
+        input:focus,
+        select:focus{
+            outline:none;
+            border-color:#1e3c72;
+            background:white;
+            box-shadow:0px 0px 12px rgba(30,60,114,0.15);
+        }
+
+        .btn{
+            margin-top:25px;
+            padding:14px 22px;
+            border:none;
+            border-radius:12px;
+            cursor:pointer;
+            font-weight:bold;
+            transition:0.3s;
+            font-size:15px;
+        }
+
+        .btn-save{
+            background:#27ae60;
+            color:white;
+        }
+
+        .btn-save:hover{
+            background:#219150;
+            transform:translateY(-2px);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            overflow:hidden;
+            border-radius:15px;
+        }
+
+        table thead{
+            background:#1e3c72;
+            color:white;
+        }
+
+        table th{
+            padding:18px;
+            font-size:15px;
+        }
+
+        table td{
+            padding:16px;
+            text-align:center;
+            border-bottom:1px solid #ececec;
+        }
+
+        table tbody tr{
+            background:white;
+            transition:0.3s;
+        }
+
+        table tbody tr:hover{
+            background:#f7faff;
+        }
+
+        .actions{
+            display:flex;
+            justify-content:center;
+            gap:10px;
+        }
+
+        .edit,
+        .delete{
+            border:none;
+            padding:10px 14px;
+            border-radius:10px;
+            cursor:pointer;
+            color:white;
+            font-size:15px;
+            transition:0.3s;
+            font-weight:bold;
+        }
+
+        .edit{
+            background:#f39c12;
+        }
+
+        .edit:hover{
+            background:#d68910;
+        }
+
+        .delete{
+            background:#e74c3c;
+        }
+
+        .delete:hover{
+            background:#cb4335;
+        }
+
+        .error{
+            background:#f8d7da;
+            color:#721c24;
+            padding:15px;
+            border-radius:12px;
+            margin-bottom:20px;
+        }
+
+        .toast{
+            position:fixed;
+            top:30px;
+            right:30px;
+            background:#27ae60;
+            color:white;
+            padding:18px 25px;
+            border-radius:12px;
+            font-weight:bold;
+            box-shadow:0px 10px 25px rgba(0,0,0,0.15);
+            z-index:9999;
+            animation:fadeOut 4s forwards;
+        }
+
+        @keyframes fadeOut{
+
+            0%{
+                opacity:1;
+            }
+
+            70%{
+                opacity:1;
+            }
+
+            100%{
+                opacity:0;
+                visibility:hidden;
+            }
+        }
+
+        /* MODAL */
+
+        .modal{
+            display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.55);
+            justify-content:center;
+            align-items:center;
+            z-index:99999;
+        }
+
+        .modal-content{
+            background:white;
+            width:90%;
+            max-width:430px;
+            border-radius:20px;
+            padding:30px;
+            text-align:center;
+            animation:zoom 0.25s ease;
+        }
+
+        .modal-content h2{
+            color:#1e3c72;
+            margin-bottom:15px;
+        }
+
+        .modal-content p{
+            color:#555;
+            margin-bottom:25px;
+            line-height:1.5;
+        }
+
+        .modal-buttons{
+            display:flex;
+            justify-content:center;
+            gap:15px;
+        }
+
+        .btn-cancel,
+        .btn-confirm{
+            padding:12px 20px;
+            border:none;
+            border-radius:10px;
+            cursor:pointer;
+            color:white;
+            font-weight:bold;
+        }
+
+        .btn-cancel{
+            background:#7f8c8d;
+        }
+
+        .btn-confirm{
+            background:#27ae60;
+        }
+
+        @keyframes zoom{
+
+            from{
+                transform:scale(0.8);
+                opacity:0;
+            }
+
+            to{
+                transform:scale(1);
+                opacity:1;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div th:if="${param.success != null}" class="toast">
+
+    <span th:if="${param.success[0] == 'created'}">
+        ✅ Usuario creado correctamente
+    </span>
+
+    <span th:if="${param.success[0] == 'updated'}">
+        ✅ Usuario actualizado correctamente
+    </span>
+
+    <span th:if="${param.success[0] == 'deleted'}">
+        ✅ Usuario eliminado correctamente
+    </span>
+
+</div>
+
+<h1>👑 Administración de Usuarios</h1>
+
+<div th:if="${error}" class="error">
+    <span th:text="${error}"></span>
+</div>
+
+<div class="card">
+
+    <h2 th:text="${usuarioObj != null and usuarioObj.id != null ?
+    'Editar Usuario' : 'Crear Usuario'}"></h2>
+
+    <form id="formUsuario"
+          th:action="${usuarioObj != null and usuarioObj.id != null}
+          ? @{/usuarios/admin/actualizar}
+          : @{/usuarios/admin/crear}"
+          method="post">
+
+        <input type="hidden"
+               name="id"
+               th:value="${usuarioObj != null ? usuarioObj.id : ''}">
+
+        <div class="form-grid">
+
+            <input type="text"
+                   name="username"
+                   id="username"
+                   placeholder="Usuario"
+                   th:value="${usuarioObj != null ? usuarioObj.username : ''}"
+                   required>
+
+            <input type="password"
+                   name="password"
+                   id="password"
+                   placeholder="Nueva contraseña">
+
+            <input type="password"
+                   name="confirmarPassword"
+                   id="confirmarPassword"
+                   placeholder="Confirmar contraseña">
+
+            <select name="rol">
+
+                <option value="admin"
+                        th:selected="${usuarioObj != null and usuarioObj.rol == 'admin'}">
+                    admin
+                </option>
+
+                <option value="cajero"
+                        th:selected="${usuarioObj != null and usuarioObj.rol == 'cajero'}">
+                    cajero
+                </option>
+
+                <option value="director"
+                        th:selected="${usuarioObj != null and usuarioObj.rol == 'director'}">
+                    director
+                </option>
+
+                <option value="docente"
+                        th:selected="${usuarioObj != null and usuarioObj.rol == 'docente'}">
+                    docente
+                </option>
+
+                <option value="CDE"
+                        th:selected="${usuarioObj != null and usuarioObj.rol == 'CDE'}">
+                    CDE
+                </option>
+
+            </select>
+
+            <select name="activo">
+
+                <option value="true"
+                        th:selected="${usuarioObj == null or usuarioObj.activo == null or usuarioObj.activo}">
+                    Activo
+                </option>
+
+                <option value="false"
+                        th:selected="${usuarioObj != null and usuarioObj.activo != null and !usuarioObj.activo}">
+                    Inactivo
+                </option>
+
+            </select>
+
+        </div>
+
+        <button type="button"
+                class="btn btn-save"
+                onclick="confirmarGuardar()">
+
+            💾 Guardar Usuario
+
+        </button>
+
+    </form>
+
+</div>
+
+<div class="card">
+
+    <h2>Usuarios Registrados</h2>
+
+    <table>
+
+        <thead>
+
+        <tr>
+
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr th:each="u : ${usuarios}">
+
+            <td th:text="${u.id}"></td>
+
+            <td th:text="${u.username}"></td>
+
+            <td th:text="${u.rol}"></td>
+
+            <td th:text="${u.activo == true ? 'Activo' : 'Inactivo'}"></td>
+
+            <td>
+
+                <div class="actions">
+
+                    <a th:href="@{/usuarios/admin/editar/{id}(id=${u.id})}">
+
+                        <button type="button" class="edit">
+                            ✏️
+                        </button>
+
+                    </a>
+
+                    <button type="button"
+                            class="delete"
+                            th:attr="data-url=@{/usuarios/admin/eliminar/{id}(id=${u.id})}"
+                            onclick="abrirModalEliminar(this.getAttribute('data-url'))">
+
+                        🗑️
+
+                    </button>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<div id="modal"
+     class="modal">
+
+    <div class="modal-content">
+
+        <h2>
+            Confirmación
+        </h2>
+
+        <p id="mensajeModal"></p>
+
+        <div class="modal-buttons">
+
+            <button type="button"
+                    class="btn-cancel"
+                    onclick="cerrarModal()">
+
+                Cancelar
+
+            </button>
+
+            <button type="button"
+                    class="btn-confirm"
+                    id="btnConfirmar">
+
+                Confirmar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    let accionPendiente = null;
+
+    function abrirModal(mensaje, callback){
+
+        document.getElementById("mensajeModal")
+            .innerText = mensaje;
+
+        document.getElementById("modal")
+            .style.display = "flex";
+
+        accionPendiente = callback;
+    }
+
+    function cerrarModal(){
+
+        document.getElementById("modal")
+            .style.display = "none";
+
+        accionPendiente = null;
+    }
+
+    document.getElementById("btnConfirmar")
+        .addEventListener("click", function(){
+
+            if(accionPendiente){
+                accionPendiente();
+            }
+
+            cerrarModal();
+        });
+
+    function validarFormulario(){
+
+        let username =
+            document.getElementById("username").value.trim();
+
+        let password =
+            document.getElementById("password").value.trim();
+
+        let confirmar =
+            document.getElementById("confirmarPassword").value.trim();
+
+        if(username === ""){
+
+            abrirModal(
+                "El usuario no puede estar vacío",
+                function(){}
+            );
+
+            return false;
+        }
+
+        let editando =
+            document.querySelector("input[name='id']").value !== "";
+
+        if(!editando){
+
+            if(password === "" || confirmar === ""){
+
+                abrirModal(
+                    "La contraseña es obligatoria",
+                    function(){}
+                );
+
+                return false;
+            }
+        }
+
+        if(password !== "" || confirmar !== ""){
+
+            if(password !== confirmar){
+
+                abrirModal(
+                    "Las contraseñas no coinciden",
+                    function(){}
+                );
+
+                return false;
+            }
+
+            if(password.length < 4){
+
+                abrirModal(
+                    "La contraseña debe tener mínimo 4 caracteres",
+                    function(){}
+                );
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function confirmarGuardar(){
+
+        if(!validarFormulario()){
+            return;
+        }
+
+        abrirModal(
+            "¿Deseas guardar los cambios del usuario?",
+            function(){
+
+                document.getElementById("formUsuario")
+                    .submit();
+
+            }
+        );
+    }
+
+    function abrirModalEliminar(url){
+
+        abrirModal(
+            "¿Deseas eliminar este usuario?",
+            function(){
+
+                window.location.href = url;
+
+            }
+        );
+    }
+
+</script>
+
+</body>
+</html>

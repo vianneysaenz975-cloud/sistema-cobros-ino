@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes | Cobros INO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 25px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            padding: 22px 35px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-left: 6px solid #87CEEB;
+        }
+
+        .header h1 { color: #1e3c72; font-size: 26px; }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover { transform: translateY(-2px); }
+
+        /* BOTÓN IMPRIMIR */
+        .btn-print {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        /* FILTROS */
+        .filtros-box {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            border-top: 5px solid #87CEEB;
+        }
+
+        .filtros-box h3 {
+            color: #1e3c72;
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filtros-grid .form-group { margin: 0; }
+
+        .filtros-grid label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .filtros-grid input,
+        .filtros-grid select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #f7f9fc;
+        }
+
+        .filtros-grid input:focus,
+        .filtros-grid select:focus {
+            outline: none;
+            border-color: #2a5298;
+            background: white;
+        }
+
+        .btn-filtrar {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-filtrar:hover { transform: translateY(-2px); }
+
+        .btn-limpiar {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-limpiar:hover { transform: translateY(-2px); }
+
+        /* SECCIÓN TÍTULO */
+        .section-title {
+            color: #666;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        /* GRID DE CARDS */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-left: 5px solid #87CEEB;
+            transition: all 0.3s;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        .card .icon { font-size: 35px; margin-bottom: 12px; display: inline-block; }
+        .card h4 {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .card .num {
+            color: #1e3c72;
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .card-verde { border-left-color: #27ae60; }
+        .card-verde .num { color: #27ae60; }
+        .card-amarillo { border-left-color: #f39c12; }
+        .card-amarillo .num { color: #f39c12; }
+        .card-rojo { border-left-color: #e74c3c; }
+        .card-rojo .num { color: #e74c3c; }
+
+        /* TABLA */
+        .card-tabla {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            border-top: 5px solid #87CEEB;
+        }
+
+        .card-tabla h3 {
+            color: #1e3c72;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .table-container { overflow-x: auto; border-radius: 12px; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        table thead { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+
+        table th {
+            color: white;
+            padding: 14px 15px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        table td {
+            padding: 13px 15px;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 14px;
+            color: #333;
+        }
+
+        table tbody tr:hover { background: #f7f9fc; }
+
+        .badge {
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .badge-pagado { background: #d4edda; color: #155724; }
+        .badge-pendiente { background: #fff3cd; color: #856404; }
+        .badge-vencido { background: #f8d7da; color: #721c24; }
+
+        .empty { text-align: center; padding: 40px; color: #999; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header { flex-direction: column; gap: 15px; text-align: center; }
+            .header h1 { font-size: 20px; }
+            .cards { grid-template-columns: 1fr; }
+            .filtros-grid { grid-template-columns: 1fr; }
+        }
+
+        /* CONFIGURACIÓN PARA IMPRIMIR */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .btn-print,
+            .btn-secondary,
+            .filtros-box,
+            .btn-filtrar,
+            .btn-limpiar {
+                display: none !important;
+            }
+            .header {
+                box-shadow: none;
+                border-left: none;
+                border-bottom: 3px solid #1e3c72;
+                border-radius: 0;
+                padding-bottom: 15px;
+            }
+            .card-tabla,
+            .card {
+                box-shadow: none;
+                page-break-inside: avoid;
+                border-radius: 0;
+                border: 1px solid #ddd;
+            }
+            .section-title {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>📊 Reportes del Sistema</h1>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="window.print()" class="btn-print">🖨️ Imprimir Reporte</button>
+            <a href="/usuarios/dashboard" class="btn-secondary">← Volver al Dashboard</a>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- FILTROS -->
+    <!-- ========================================= -->
+    <div class="filtros-box">
+        <h3>🔍 Filtros de Búsqueda</h3>
+        <form method="get" action="/reportes">
+            <div class="filtros-grid">
+                <div class="form-group">
+                    <label>📅 Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" th:value="${fechaInicio}">
+                </div>
+                <div class="form-group">
+                    <label>📅 Fecha Fin</label>
+                    <input type="date" name="fechaFin" th:value="${fechaFin}">
+                </div>
+                <div class="form-group">
+                    <label>📊 Estado</label>
+                    <select name="estadoFiltro">
+                        <option value="todos" th:selected="${estadoFiltro == 'todos' or estadoFiltro == null}">Todos</option>
+                        <option value="pagado" th:selected="${estadoFiltro == 'pagado'}">✅ Pagado</option>
+                        <option value="pendiente" th:selected="${estadoFiltro == 'pendiente'}">⏳ Pendiente</option>
+                        <option value="vencido" th:selected="${estadoFiltro == 'vencido'}">❌ Vencido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>👤 Estudiante</label>
+                    <select name="estudianteFiltro">
+                        <option value="todos" th:selected="${estudianteFiltro == 'todos' or estudianteFiltro == null}">Todos</option>
+                        <option th:each="e : ${todosLosEstudiantes}"
+                                th:value="${e.nombre}"
+                                th:text="${e.nombre}"
+                                th:selected="${estudianteFiltro == e.nombre}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+                <a href="/reportes" class="btn-limpiar">🔄 Limpiar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- RESUMEN GENERAL -->
+    <!-- ========================================= -->
+    <div class="section-title">📌 Resumen General</div>
+    <div class="cards">
+        <div class="card card-verde">
+            <div class="icon">💰</div>
+            <h4>Total Recaudado</h4>
+            <div class="num" th:text="'$' + ${totalRecaudado}">$0</div>
+        </div>
+        <div class="card card-amarillo">
+            <div class="icon">⏳</div>
+            <h4>Total Pendiente</h4>
+            <div class="num" th:text="'$' + ${totalPendiente}">$0</div>
+        </div>
+        <div class="card">
+            <div class="icon">💳</div>
+            <h4>Total de Pagos</h4>
+            <div class="num" th:text="${totalPagos}">0</div>
+        </div>
+        <div class="card">
+            <div class="icon">👨‍🎓</div>
+            <h4>Total de Estudiantes</h4>
+            <div class="num" th:text="${totalEstudiantes}">0</div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- LISTA DE PAGOS FILTRADOS -->
+    <!-- ========================================= -->
+    <div class="card-tabla">
+        <h3>📋 Lista de Pagos (filtrados)</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Estudiante</th>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Método</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pagosFiltrados}">
+                    <td th:text="${p.id}"></td>
+                    <td th:text="${p.estudiante}"></td>
+                    <td th:text="${p.concepto}"></td>
+                    <td th:text="'$' + ${p.monto}"></td>
+                    <td th:text="${p.fechaPago}"></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="'badge-' + ${p.estado}"
+                              th:text="${p.estado}"></span>
+                    </td>
+                    <td th:text="${p.metodoPago}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(pagosFiltrados)}">
+                    <td colspan="7" class="empty">No hay pagos que coincidan con los filtros</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PAGOS POR MES -->
+    <!-- ========================================= -->
+    <div class="card-tabla">
+        <h3>📅 Pagos por Mes</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Mes</th>
+                    <th>Total Recaudado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${pagosPorMes}">
+                    <td th:text="${entry.key}">Septiembre 2026</td>
+                    <td th:text="'$' + ${entry.value}">$0</td>
+                </tr>
+                <tr th:if="${#maps.isEmpty(pagosPorMes)}">
+                    <td colspan="2" class="empty">No hay pagos registrados</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ESTUDIANTES CON DEUDAS -->
+    <!-- ========================================= -->
+    <div class="card-tabla">
+        <h3>⚠️ Estudiantes con Deudas (pagos pendientes)</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Estudiante</th>
+                    <th>Deuda Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry, iter : ${estudiantesConDeudas}">
+                    <td th:text="${iter.index + 1}">1</td>
+                    <td th:text="${entry.key}">Juan Pérez</td>
+                    <td th:text="'$' + ${entry.value}">$30</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(estudiantesConDeudas)}">
+                    <td colspan="3" class="empty">✅ No hay estudiantes con deudas</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- TOP 5 ESTUDIANTES -->
+    <!-- ========================================= -->
+    <div class="card-tabla">
+        <h3>🏆 Top 5 Estudiantes (que más han pagado)</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Estudiante</th>
+                    <th>Total Pagado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry, iter : ${topEstudiantes}">
+                    <td th:text="${iter.index + 1}">1</td>
+                    <td th:text="${entry.key}">Juan Pérez</td>
+                    <td th:text="'$' + ${entry.value}">$30</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(topEstudiantes)}">
+                    <td colspan="3" class="empty">No hay datos disponibles</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- LISTA DE ESTUDIANTES -->
+    <!-- ========================================= -->
+    <div class="card-tabla">
+        <h3>👨‍🎓 Lista de Estudiantes</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>NIE</th>
+                    <th>Grado</th>
+                    <th>Sección</th>
+                    <th>Encargado</th>
+                    <th>Teléfono</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${todosLosEstudiantes}">
+                    <td th:text="${e.id}"></td>
+                    <td th:text="${e.nombre}"></td>
+                    <td th:text="${e.nie}"></td>
+                    <td th:text="${e.grado}"></td>
+                    <td th:text="${e.seccion}"></td>
+                    <td th:text="${e.encargado}"></td>
+                    <td th:text="${e.telefono}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(todosLosEstudiantes)}">
+                    <td colspan="7" class="empty">No hay estudiantes registrados</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

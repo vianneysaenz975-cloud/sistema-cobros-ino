@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago | Cobros INO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        /* ACCIONES (BOTONES) */
+        .acciones {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        /* RECIBO */
+        .recibo {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-top: 8px solid #1e3c72;
+        }
+
+        .recibo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #1e3c72;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .recibo-header .empresa h1 {
+            color: #1e3c72;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .recibo-header .empresa p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .recibo-header .numero {
+            text-align: right;
+        }
+
+        .recibo-header .numero h2 {
+            color: #e74c3c;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .recibo-header .numero p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .recibo-titulo {
+            text-align: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+
+        .seccion {
+            margin-bottom: 30px;
+        }
+
+        .seccion-titulo {
+            color: #1e3c72;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 30px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e1e8ed;
+        }
+
+        .info-item .label {
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .info-item .valor {
+            color: #333;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* MONTO */
+        .monto-box {
+            background: linear-gradient(135deg, #e8f4f8, #d4ecf7);
+            border-left: 5px solid #1e3c72;
+            padding: 25px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .monto-box .label {
+            color: #1e3c72;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .monto-box .valor {
+            color: #1e3c72;
+            font-size: 42px;
+            font-weight: 800;
+        }
+
+        /* ESTADO */
+        .estado-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .estado-pagado { background: #d4edda; color: #155724; }
+        .estado-pendiente { background: #fff3cd; color: #856404; }
+        .estado-vencido { background: #f8d7da; color: #721c24; }
+
+        /* FIRMA */
+        .firma {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-around;
+            gap: 50px;
+        }
+
+        .firma-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .firma-linea {
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 50px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        /* FOOTER */
+        .footer-recibo {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #e1e8ed;
+            color: #999;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        /* PRINT */
+        @media print {
+            body { background: white; padding: 0; }
+            .acciones { display: none; }
+            .recibo {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .recibo { padding: 25px; }
+            .info-grid { grid-template-columns: 1fr; }
+            .recibo-header { flex-direction: column; gap: 15px; }
+            .recibo-header .numero { text-align: left; }
+            .monto-box { flex-direction: column; text-align: center; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="acciones">
+        <a href="/pagos" class="btn btn-secondary">← Volver a Pagos</a>
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir Recibo</button>
+        <a href="/pagos" class="btn btn-success">✅ Nuevo Pago</a>
+    </div>
+
+    <!-- RECIBO -->
+    <div class="recibo">
+
+        <!-- HEADER -->
+        <div class="recibo-header">
+            <div class="empresa">
+                <h1>🏢 Cobros INO</h1>
+                <p>Sistema de Gestión de Cobros</p>
+                <p>El Salvador, C.A.</p>
+            </div>
+            <div class="numero">
+                <h2>RECIBO N°</h2>
+                <p style="font-size: 24px; font-weight: bold; color: #1e3c72;">
+                    #<span th:text="${pago.id}">000</span>
+                </p>
+                <p>Fecha: <span th:text="${pago.fechaPago}">2026-09-23</span></p>
+            </div>
+        </div>
+
+        <!-- TÍTULO -->
+        <div class="recibo-titulo">
+            COMPROBANTE DE PAGO
+        </div>
+
+        <!-- DATOS DEL ESTUDIANTE -->
+        <div class="seccion">
+            <div class="seccion-titulo">👤 Datos del Estudiante</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="label">Nombre:</span>
+                    <span class="valor" th:text="${pago.estudiante}">Juan Pérez</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">NIE:</span>
+                    <span class="valor" th:text="${estudiante != null ? estudiante.nie : 'N/A'}">12345678</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Grado:</span>
+                    <span class="valor" th:text="${estudiante != null ? estudiante.grado : 'N/A'}">1° Año</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Sección:</span>
+                    <span class="valor" th:text="${estudiante != null ? estudiante.seccion : 'N/A'}">A</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Encargado:</span>
+                    <span class="valor" th:text="${estudiante != null ? estudiante.encargado : 'N/A'}">María Pérez</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Teléfono:</span>
+                    <span class="valor" th:text="${estudiante != null ? estudiante.telefono : 'N/A'}">7777-1111</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DETALLE DEL PAGO -->
+        <div class="seccion">
+            <div class="seccion-titulo">💳 Detalle del Pago</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="label">Concepto:</span>
+                    <span class="valor" th:text="${pago.concepto}">Mensualidad</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Método de Pago:</span>
+                    <span class="valor" th:text="${pago.metodoPago}">Efectivo</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Estado:</span>
+                    <span class="valor">
+                        <span class="estado-badge"
+                              th:classappend="'estado-' + ${pago.estado}"
+                              th:text="${pago.estado}">pagado</span>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Fecha de Pago:</span>
+                    <span class="valor" th:text="${pago.fechaPago}">2026-09-23</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONTO TOTAL -->
+        <div class="monto-box">
+            <span class="label">💰 TOTAL PAGADO</span>
+            <span class="valor" th:text="'$' + ${pago.monto}">$30.00</span>
+        </div>
+
+        <!-- FIRMAS -->
+        <div class="firma">
+            <div class="firma-item">
+                <div class="firma-linea">Firma del Estudiante</div>
+            </div>
+            <div class="firma-item">
+                <div class="firma-linea">Firma del Encargado</div>
+            </div>
+            <div class="firma-item">
+                <div class="firma-linea">Sello de Cobros INO</div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-recibo">
+            <p><strong>Cobros INO</strong> - Sistema de Gestión de Cobros</p>
+            <p>Este documento es un comprobante oficial de pago.</p>
+            <p>Generado automáticamente el <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy HH:mm')}">23/09/2026</span></p>
+        </div>
+
+    </div>
+
+</body>
+</html>
