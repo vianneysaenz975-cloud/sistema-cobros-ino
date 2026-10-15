@@ -11,6 +11,7 @@ import com.example.proyecto_cobros.entity.Usuario;
 import com.example.proyecto_cobros.repository.UsuarioRepository;
 import com.example.proyecto_cobros.repository.PagoRepository;
 import com.example.proyecto_cobros.repository.EstudianteRepository;
+import com.example.proyecto_cobros.security.HashUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,7 +43,7 @@ public class UsuarioController {
     }
 
     // =========================================
-    // PROCESAR LOGIN
+    // PROCESAR LOGIN (CON HASH)
     // =========================================
 
     @PostMapping("/login")
@@ -62,22 +63,20 @@ public class UsuarioController {
             return "login";
         }
 
-        Usuario usuario = repo.findByUsername(username.trim());
+        // Generar hash de la contraseña
+        String passwordHash = HashUtil.sha256(password);
+        System.out.println("Hash generado: " + passwordHash);
+
+        // Buscar usuario por username y hash
+        Usuario usuario = repo.findByUsernameAndPasswordHash(username.trim(), passwordHash);
 
         if (usuario == null) {
-            System.out.println("Usuario NO existe");
+            System.out.println("Usuario o contraseña incorrectos");
             model.addAttribute("error", "Usuario o contraseña incorrectos");
             return "login";
         }
 
         System.out.println("Usuario encontrado: " + usuario.getUsername());
-        System.out.println("Password BD: '" + usuario.getPasswordHash() + "'");
-
-        if (!password.equals(usuario.getPasswordHash())) {
-            System.out.println("Contraseña INCORRECTA");
-            model.addAttribute("error", "Usuario o contraseña incorrectos");
-            return "login";
-        }
 
         if (usuario.getActivo() != null && !usuario.getActivo()) {
             System.out.println("Usuario DESACTIVADO");
@@ -103,11 +102,9 @@ public class UsuarioController {
             return "redirect:/usuarios";
         }
 
-        // Estadísticas reales
         long totalPagos = pagoRepo.count();
         long totalEstudiantes = estudianteRepo.count();
 
-        // Total recaudado
         BigDecimal totalRecaudado = BigDecimal.ZERO;
         try {
             totalRecaudado = pagoRepo.findAll()
@@ -118,7 +115,6 @@ public class UsuarioController {
             totalRecaudado = BigDecimal.ZERO;
         }
 
-        // Pagos pendientes
         long pagosPendientes = pagoRepo.findAll()
                 .stream()
                 .filter(p -> "pendiente".equalsIgnoreCase(p.getEstado()))
@@ -153,7 +149,7 @@ public class UsuarioController {
     }
 
     // =========================================
-    // CREAR USUARIO
+    // CREAR USUARIO (CON HASH)
     // =========================================
 
     @PostMapping("/crear")
@@ -206,7 +202,7 @@ public class UsuarioController {
 
         Usuario usuario = new Usuario();
         usuario.setUsername(username.trim());
-        usuario.setPasswordHash(password.trim());
+        usuario.setPasswordHash(HashUtil.sha256(password));  // ← HASH
         usuario.setRol(rol);
         usuario.setActivo(true);
         usuario.setFechaCreacion(LocalDateTime.now());
